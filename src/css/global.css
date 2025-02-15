@@ -17,11 +17,11 @@
     --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --shadow-sm: 0 2px 8px rgba(0,0,0,0.1);
     --shadow-md: 0 8px 24px rgba(0,0,0,0.15);
-    --map-base: #1a1a1a;          /* 基础省份颜色 */
-    --map-highlight: #3a3a3a;     /* 有数据省份的颜色 */
-    --map-active: #4a4a4a;        /* 激活状态的颜色 */
-    --map-stroke: rgba(255, 255, 255, 0.1);  /* 基础描边颜色 */
-    --map-stroke-highlight: rgba(255, 255, 255, 0.3); /* 高亮描边颜色 */
+    --map-base: #2a2a2a;          /* 基础省份颜色，从 #1a1a1a 调亮 */
+    --map-highlight: #4a4a4a;     /* 有数据省份的颜色，从 #3a3a3a 调亮 */
+    --map-active: #5a5a5a;        /* 激活状态的颜色，从 #4a4a4a 调亮 */
+    --map-stroke: rgba(255, 255, 255, 0.15);  /* 基础描边颜色，增加透明度 */
+    --map-stroke-highlight: rgba(255, 255, 255, 0.4); /* 高亮描边颜色，增加透明度 */
 }
 
 * {
@@ -959,7 +959,7 @@ p {
 .province[data-products]:not([data-products=""]).active {
     fill: var(--map-active);
     stroke: var(--white);
-    opacity: 1;
+    opacity: 0.9; /* 稍微调整一下透明度，让效果更柔和 */
 }
 
 .region-info {

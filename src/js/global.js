@@ -159,4 +159,142 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    function sendEmail(event) {
+        event.preventDefault();
+        const form = event.target;
+        const name = form.name.value;
+        const email = form.email.value;
+        const message = form.message.value;
+        
+        // 创建邮件内容
+        const mailtoLink = `mailto:your.email@example.com?subject=Contact from Website&body=Name: ${name}%0D%0AEmail: ${email}%0D%0A%0D%0AMessage:%0D%0A${encodeURIComponent(message)}`;
+        
+        // 打开默认邮件客户端
+        window.location.href = mailtoLink;
+        
+        // 清空表单
+        form.reset();
+    }
+
+    // 添加 Toast 通知功能
+    function showToast(message, type = 'success') {
+        // 移除现有的 toast
+        const existingToast = document.querySelector('.toast');
+        if (existingToast) {
+            existingToast.remove();
+        }
+        
+        // 创建新的 toast
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        // 显示 toast
+        setTimeout(() => toast.classList.add('show'), 10);
+        
+        // 3秒后隐藏
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // 表单验证函数
+    function validateForm(form) {
+        const name = form.name.value.trim();
+        const email = form.email.value.trim();
+        const message = form.message.value.trim();
+        
+        if (name.length < 2) {
+            showToast('Please enter your name (at least 2 characters)', 'error');
+            form.name.focus();
+            return false;
+        }
+        
+        // 邮箱格式验证
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showToast('Please enter a valid email address', 'error');
+            form.email.focus();
+            return false;
+        }
+        
+        if (message.length < 10) {
+            showToast('Please enter a detailed message (at least 10 characters)', 'error');
+            form.message.focus();
+            return false;
+        }
+        
+        return true;
+    }
+
+    // 修改表单字段验证
+    document.querySelectorAll('.contact-form input, .contact-form textarea').forEach(field => {
+        // 移除浏览器默认验证提示
+        field.setAttribute('novalidate', true);
+        
+        // 添加输入验证
+        field.addEventListener('invalid', (e) => {
+            e.preventDefault();
+            let message = '';
+            
+            if (e.target.validity.valueMissing) {
+                message = `Please fill in your ${e.target.name}`;
+            } else if (e.target.validity.typeMismatch && e.target.type === 'email') {
+                message = 'Please enter a valid email address';
+            }
+            
+            showToast(message, 'error');
+            e.target.focus();
+        });
+    });
+
+    // 修改表单提交
+    document.querySelector('.contact-form').addEventListener('submit', async function(e) {
+        // 移除表单默认验证
+        this.setAttribute('novalidate', true);
+        
+        e.preventDefault();
+        
+        const form = e.target;
+        
+        // 表单验证
+        if (!validateForm(form)) {
+            return;
+        }
+        
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.textContent;
+        
+        // 更改按钮状态
+        submitButton.disabled = true;
+        submitButton.textContent = 'Sending...';
+        
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                // 成功提交
+                form.reset();
+                showToast('Message sent successfully!', 'success');
+            } else {
+                throw new Error('Network response was not ok');
+            }
+        } catch (error) {
+            showToast('Sorry, there was an error sending your message. Please try again.', 'error');
+            console.error('Error:', error);
+        } finally {
+            // 恢复按钮状态
+            submitButton.disabled = false;
+            submitButton.textContent = originalButtonText;
+        }
+    });
 }); 

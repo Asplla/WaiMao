@@ -12,7 +12,7 @@
     --gray-900: #111111;
     --border-color: rgba(255, 255, 255, 0.1);
     --card-background: #111111;
-    --header-background: rgba(0, 0, 0, 0.7);
+    --header-background: rgba(0, 0, 0, 0.8);
     --border-radius: 8px;
     --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --shadow-sm: 0 2px 8px rgba(0,0,0,0.1);
@@ -53,7 +53,7 @@ body {
 /* 当不在顶部时的样式 */
 .header:not(.header-top) {
     background: var(--header-background);
-    backdrop-filter: blur(12px);
+    backdrop-filter: saturate(180%) blur(20px);
     border-bottom: 1px solid var(--border-color);
 }
 

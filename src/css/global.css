@@ -1163,6 +1163,13 @@ p {
     visibility: visible;
 }
 
+.loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
 .loading-spinner {
     width: 40px;
     height: 40px;
@@ -1174,7 +1181,6 @@ p {
 
 .loading-text {
     color: var(--white);
-    margin-top: 16px;
     font-size: 14px;
     font-weight: 500;
 }

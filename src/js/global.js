@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
         overlay.className = 'loading-overlay';
         
         const content = document.createElement('div');
-        content.style.textAlign = 'center';
+        content.className = 'loading-content';
         
         const spinner = document.createElement('div');
         spinner.className = 'loading-spinner';

@@ -270,11 +270,17 @@ document.addEventListener('DOMContentLoaded', function() {
         submitButton.textContent = 'Sending...';
         
         try {
-            const formData = new FormData(form);
+            // 构建要发送的数据字符串
+            const formData = new URLSearchParams();
+            formData.append('name', form.name.value.trim());
+            formData.append('email', form.email.value.trim());
+            formData.append('message', form.message.value.trim());
+            
             const response = await fetch(form.action, {
                 method: 'POST',
-                body: formData,
+                body: formData.toString(),
                 headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 }

@@ -1076,7 +1076,7 @@ p {
 /* Toast 通知样式 */
 .toast {
     position: fixed;
-    top: 88px;  /* header height (64px) + margin (24px) */
+    top: 88px;
     left: 50%;
     transform: translateX(-50%) translateY(-100%);
     background: var(--card-background);
@@ -1088,7 +1088,7 @@ p {
     z-index: 1000;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-md);
     backdrop-filter: blur(8px);
@@ -1096,6 +1096,7 @@ p {
     align-items: center;
     gap: 8px;
     min-width: 300px;
+    will-change: transform, opacity;
 }
 
 .toast::before {
@@ -1155,7 +1156,8 @@ p {
     z-index: 1001;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: opacity;
 }
 
 .loading-overlay.show {

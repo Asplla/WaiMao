@@ -1,18 +1,29 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // 缓存常用DOM元素
     const header = document.querySelector('.header');
+    const contactForm = document.querySelector('.contact-form');
     
-    function updateNavbar() {
-        if (window.scrollY <= 0) {
-            header.classList.add('header-top');
-        } else {
-            header.classList.remove('header-top');
+    // 使用节流函数优化滚动事件
+    function throttle(func, limit) {
+        let inThrottle;
+        return function() {
+            const args = arguments;
+            const context = this;
+            if (!inThrottle) {
+                func.apply(context, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
         }
     }
     
+    // 优化导航栏更新逻辑
+    const updateNavbar = throttle(function() {
+        header.classList.toggle('header-top', window.scrollY <= 0);
+    }, 100);
+    
     // 初始化导航栏状态
     updateNavbar();
-    
-    // 监听滚动事件
     window.addEventListener('scroll', updateNavbar);
 
     // 地图交互功能
@@ -160,158 +171,123 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    function sendEmail(event) {
-        event.preventDefault();
-        const form = event.target;
-        const name = form.name.value;
-        const email = form.email.value;
-        const message = form.message.value;
-        
-        // 创建邮件内容
-        const mailtoLink = `mailto:your.email@example.com?subject=Contact from Website&body=Name: ${name}%0D%0AEmail: ${email}%0D%0A%0D%0AMessage:%0D%0A${encodeURIComponent(message)}`;
-        
-        // 打开默认邮件客户端
-        window.location.href = mailtoLink;
-        
-        // 清空表单
-        form.reset();
-    }
-
-    // 添加 Toast 通知功能
-    function showToast(message, type = 'success') {
-        // 移除现有的 toast
-        const existingToast = document.querySelector('.toast');
-        if (existingToast) {
-            existingToast.remove();
-        }
-        
-        // 创建新的 toast
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        
-        // 显示 toast
-        setTimeout(() => toast.classList.add('show'), 10);
-        
-        // 3秒后隐藏
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-
-    // 表单验证函数
+    // 表单验证函数优化
     function validateForm(form) {
-        const name = form.name.value.trim();
-        const email = form.email.value.trim();
-        const message = form.message.value.trim();
-        
-        if (name.length < 2) {
-            showToast('Please enter your name (at least 2 characters)', 'error');
-            form.name.focus();
-            return false;
-        }
-        
-        // 邮箱格式验证
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            showToast('Please enter a valid email address', 'error');
-            form.email.focus();
-            return false;
-        }
-        
-        if (message.length < 10) {
-            showToast('Please enter a detailed message (at least 10 characters)', 'error');
-            form.message.focus();
-            return false;
+        const fields = {
+            name: {
+                value: form.name.value.trim(),
+                minLength: 2,
+                message: 'Please enter your name (at least 2 characters)'
+            },
+            email: {
+                value: form.email.value.trim(),
+                pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: 'Please enter a valid email address'
+            },
+            message: {
+                value: form.message.value.trim(),
+                minLength: 10,
+                message: 'Please enter a detailed message (at least 10 characters)'
+            }
+        };
+
+        for (const [fieldName, field] of Object.entries(fields)) {
+            if (field.minLength && field.value.length < field.minLength) {
+                showToast(field.message, 'error');
+                form[fieldName].focus();
+                return false;
+            }
+            if (field.pattern && !field.pattern.test(field.value)) {
+                showToast(field.message, 'error');
+                form[fieldName].focus();
+                return false;
+            }
         }
         
         return true;
     }
 
-    // 修改表单字段验证
-    document.querySelectorAll('.contact-form input, .contact-form textarea').forEach(field => {
-        // 移除浏览器默认验证提示
-        field.setAttribute('novalidate', true);
-        
-        // 添加输入验证
-        field.addEventListener('invalid', (e) => {
-            e.preventDefault();
-            let message = '';
-            
-            if (e.target.validity.valueMissing) {
-                message = `Please fill in your ${e.target.name}`;
-            } else if (e.target.validity.typeMismatch && e.target.type === 'email') {
-                message = 'Please enter a valid email address';
-            }
-            
-            showToast(message, 'error');
-            e.target.focus();
-        });
-    });
+    // 优化 Toast 通知功能
+    const toastQueue = [];
+    let isShowingToast = false;
 
-    // 添加 Loading 提示功能
+    function showToast(message, type = 'success') {
+        toastQueue.push({ message, type });
+        if (!isShowingToast) {
+            showNextToast();
+        }
+    }
+
+    function showNextToast() {
+        if (toastQueue.length === 0) {
+            isShowingToast = false;
+            return;
+        }
+
+        isShowingToast = true;
+        const { message, type } = toastQueue.shift();
+        
+        const existingToast = document.querySelector('.toast');
+        if (existingToast) {
+            existingToast.remove();
+        }
+        
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        requestAnimationFrame(() => toast.classList.add('show'));
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.remove();
+                showNextToast();
+            }, 300);
+        }, 3000);
+    }
+
+    // 优化 Loading 提示功能
     function showLoading(message = 'Sending...') {
-        // 创建 loading overlay
         const overlay = document.createElement('div');
         overlay.className = 'loading-overlay';
         
         const content = document.createElement('div');
         content.className = 'loading-content';
         
-        const spinner = document.createElement('div');
-        spinner.className = 'loading-spinner';
+        content.innerHTML = `
+            <div class="loading-spinner"></div>
+            <div class="loading-text">${message}</div>
+        `;
         
-        const text = document.createElement('div');
-        text.className = 'loading-text';
-        text.textContent = message;
-        
-        content.appendChild(spinner);
-        content.appendChild(text);
         overlay.appendChild(content);
-        
         document.body.appendChild(overlay);
         
-        // 强制重绘后显示
-        setTimeout(() => overlay.classList.add('show'), 10);
+        requestAnimationFrame(() => overlay.classList.add('show'));
         
         return overlay;
     }
 
     function hideLoading(overlay) {
+        if (!overlay) return;
         overlay.classList.remove('show');
         setTimeout(() => overlay.remove(), 300);
     }
 
-    // 修改表单提交处理
-    document.querySelector('.contact-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const form = e.target;
-        
-        // 表单验证
-        if (!validateForm(form)) {
-            return;
-        }
+    // 优化表单提交处理
+    async function submitForm(form) {
+        if (!validateForm(form)) return;
         
         const submitButton = form.querySelector('button[type="submit"]');
         const originalButtonText = submitButton.textContent;
-        
-        // 显示 loading
         const loadingOverlay = showLoading('Sending your message...');
         
-        // 更改按钮状态
         submitButton.disabled = true;
         submitButton.textContent = 'Sending...';
         
         try {
-            // 构建要发送的数据字符串
-            const formData = new URLSearchParams();
-            formData.append('name', form.name.value.trim());
-            formData.append('email', form.email.value.trim());
-            formData.append('message', form.message.value.trim());
-            
+            const formData = new URLSearchParams(new FormData(form));
             const response = await fetch(form.action, {
                 method: 'POST',
                 body: formData.toString(),
@@ -325,24 +301,27 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             
             if (data.code === '200') {
-                // 发送成功
                 form.reset();
                 showToast(data.msg || 'Message sent successfully!', 'success');
             } else {
-                // 发送失败
                 showToast(data.msg || 'Failed to send message.', 'error');
             }
         } catch (error) {
-            // 处理网络错误或 JSON 解析错误
             console.error('Error:', error);
             showToast('Network error, please check your connection.', 'error');
         } finally {
-            // 隐藏 loading
             hideLoading(loadingOverlay);
-            
-            // 恢复按钮状态
             submitButton.disabled = false;
             submitButton.textContent = originalButtonText;
         }
-    });
+    }
+
+    // 事件监听器
+    if (contactForm) {
+        contactForm.setAttribute('novalidate', true);
+        contactForm.addEventListener('submit', e => {
+            e.preventDefault();
+            submitForm(e.target);
+        });
+    }
 }); 

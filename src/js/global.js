@@ -299,7 +299,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             const data = await response.json();
-            console.log('Server response:', data); // 添加日志查看服务器返回的具体数据
             
             // 修改判断逻辑，兼容字符串和数字类型的 code
             if (data.code == 200 || data.code === '200') {  // 使用 == 进行宽松比较

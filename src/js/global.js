@@ -251,6 +251,39 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // 添加 Loading 提示功能
+    function showLoading(message = 'Sending...') {
+        // 创建 loading overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'loading-overlay';
+        
+        const content = document.createElement('div');
+        content.style.textAlign = 'center';
+        
+        const spinner = document.createElement('div');
+        spinner.className = 'loading-spinner';
+        
+        const text = document.createElement('div');
+        text.className = 'loading-text';
+        text.textContent = message;
+        
+        content.appendChild(spinner);
+        content.appendChild(text);
+        overlay.appendChild(content);
+        
+        document.body.appendChild(overlay);
+        
+        // 强制重绘后显示
+        setTimeout(() => overlay.classList.add('show'), 10);
+        
+        return overlay;
+    }
+
+    function hideLoading(overlay) {
+        overlay.classList.remove('show');
+        setTimeout(() => overlay.remove(), 300);
+    }
+
     // 修改表单提交处理
     document.querySelector('.contact-form').addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -264,6 +297,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const submitButton = form.querySelector('button[type="submit"]');
         const originalButtonText = submitButton.textContent;
+        
+        // 显示 loading
+        const loadingOverlay = showLoading('Sending your message...');
         
         // 更改按钮状态
         submitButton.disabled = true;
@@ -287,7 +323,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             const data = await response.json();
-            console.log('Response:', data);
             
             if (data.code === '200') {
                 // 发送成功
@@ -302,6 +337,9 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error:', error);
             showToast('Network error, please check your connection.', 'error');
         } finally {
+            // 隐藏 loading
+            hideLoading(loadingOverlay);
+            
             // 恢复按钮状态
             submitButton.disabled = false;
             submitButton.textContent = originalButtonText;

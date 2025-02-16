@@ -251,11 +251,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 修改表单提交
+    // 修改表单提交处理
     document.querySelector('.contact-form').addEventListener('submit', async function(e) {
-        // 移除表单默认验证
-        this.setAttribute('novalidate', true);
-        
         e.preventDefault();
         
         const form = e.target;
@@ -273,24 +270,34 @@ document.addEventListener('DOMContentLoaded', function() {
         submitButton.textContent = 'Sending...';
         
         try {
+            const formData = new FormData(form);
             const response = await fetch(form.action, {
                 method: 'POST',
-                body: new FormData(form),
+                body: formData,
                 headers: {
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             });
             
+            const data = await response.json();
+            
             if (response.ok) {
-                // 成功提交
-                form.reset();
-                showToast('Message sent successfully!', 'success');
+                // 根据返回的 JSON 数据显示对应的提示
+                if (data.success) {
+                    form.reset();
+                    showToast(data.message || 'Message sent successfully!', 'success');
+                } else {
+                    showToast(data.message || 'Failed to send message.', 'error');
+                }
             } else {
-                throw new Error('Network response was not ok');
+                // 处理 HTTP 错误
+                showToast(data.message || 'Server error, please try again later.', 'error');
             }
         } catch (error) {
-            showToast('Sorry, there was an error sending your message. Please try again.', 'error');
+            // 处理网络错误或 JSON 解析错误
             console.error('Error:', error);
+            showToast('Network error, please check your connection.', 'error');
         } finally {
             // 恢复按钮状态
             submitButton.disabled = false;

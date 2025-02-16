@@ -287,19 +287,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             const data = await response.json();
+            console.log('Response:', data);
             
-            if (response.ok) {
-                console.log('Success:', data);
-                // 根据返回的 JSON 数据显示对应的提示
-                if (data.success) {
-                    form.reset();
-                    showToast(data.message || 'Message sent successfully!', 'success');
-                } else {
-                    showToast(data.message || 'Failed to send message.', 'error');
-                }
+            if (data.code === '200') {
+                // 发送成功
+                form.reset();
+                showToast(data.msg || 'Message sent successfully!', 'success');
             } else {
-                // 处理 HTTP 错误
-                showToast(data.message || 'Server error, please try again later.', 'error');
+                // 发送失败
+                showToast(data.msg || 'Failed to send message.', 'error');
             }
         } catch (error) {
             // 处理网络错误或 JSON 解析错误

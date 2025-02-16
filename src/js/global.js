@@ -283,6 +283,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             
             if (response.ok) {
+                console.log('Success:', data);
                 // 根据返回的 JSON 数据显示对应的提示
                 if (data.success) {
                     form.reset();
